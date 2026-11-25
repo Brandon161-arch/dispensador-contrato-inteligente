@@ -1,0 +1,15 @@
+# Dependencias y artefactos de Hardhat
+node_modules/
+artifacts/
+cache/
+coverage/
+coverage.json
+
+# Configuración generada por el despliegue
+web/contract-config.js
+
+# Entorno local
+.env
+*.log
+.DS_Store
+Thumbs.db
