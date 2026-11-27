@@ -2,7 +2,7 @@
   "name": "dispensador-comida-contrato",
   "version": "1.0.0",
   "private": true,
-  "description": "Dispensadora de comida con contrato inteligente, pruebas y panel web para el Aula ADSO.",
+  "description": "Bocadito 24/7: dispensadora de comida con contrato inteligente, pruebas y demo web.",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",

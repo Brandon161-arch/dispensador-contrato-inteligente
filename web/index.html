@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#e4572e">
+  <meta name="description" content="Bocadito 24/7: una dispensadora de comida con un contrato inteligente que cobra, devuelve el cambio y controla el stock.">
+  <title>Bocadito 24/7 · Dispensadora con contrato inteligente</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23e4572e'/%3E%3Cpath d='M9 8h14v16H9z' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M12 13h8M12 17h8M12 21h4' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="contract-config.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#maquina">Ir a la máquina</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#inicio" aria-label="Bocadito 24/7, inicio">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="8" y="4" width="16" height="24" rx="3"/>
+            <path d="M12 10h8M12 14h8M12 19h4"/>
+            <circle cx="21" cy="24" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>Bocadito</strong>
+          <small>dispensadora 24/7</small>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Secciones">
+        <a href="#maquina">Máquina</a>
+        <a href="#dueno">Dueño</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#contrato">Contrato</a>
+      </nav>
+
+      <div class="header-status">
+        <span class="status-pill is-demo" id="net-chip">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="net-label">Modo demo</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="hero-copy">
+        <p class="kicker">Dispensadora + contrato inteligente</p>
+        <h1>Tu antojo,<br><span>sin cajero.</span></h1>
+        <p class="hero-text">
+          Elige algo rico, paga con ether de prueba y recibe tu cambio al instante.
+          Si el pago no alcanza o no queda stock, la compra se cancela sola.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#maquina">Probar la máquina</a>
+          <a class="btn btn-ghost" href="#como-funciona">Ver cómo funciona</a>
+        </div>
+        <ul class="hero-facts">
+          <li><strong>6</strong> productos</li>
+          <li><strong>Cambio</strong> automático</li>
+          <li><strong>ETH</strong> de prueba</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual">
+        <div class="mini-machine" aria-hidden="true">
+          <div class="mini-top">
+            <span>BOCADITO</span>
+            <span class="mini-light"></span>
+          </div>
+          <div class="mini-window">
+            <div class="mini-grid">
+              <span>🥟</span><span>🫓</span><span>🥭</span>
+              <span>🍫</span><span>🍟</span><span>🥤</span>
+            </div>
+          </div>
+          <div class="mini-tray"></div>
+        </div>
+        <span class="sticker sticker-a">cambio automático</span>
+        <span class="sticker sticker-b">reglas en código</span>
+      </div>
+    </section>
+
+    <section class="section" id="maquina">
+      <div class="section-head">
+        <p class="kicker">01 · La máquina</p>
+        <h2>Elige algo rico</h2>
+        <p>Toca un producto, ajusta cuánto vas a pagar y mira qué decide el contrato.</p>
+      </div>
+
+      <div class="shop">
+        <div class="machine">
+          <div class="machine-top">
+            <div class="machine-brand">
+              <span class="machine-logo" aria-hidden="true">B·24</span>
+              <span>BOCADITO<small>snacks &amp; drinks</small></span>
+            </div>
+            <div class="machine-screen" role="status" aria-live="polite">
+              <span id="lcd-estado">LISTO</span>
+              <small id="lcd-sub">Elige tu antojo</small>
+            </div>
+          </div>
+
+          <div class="machine-window">
+            <div class="product-grid" id="productos" aria-label="Productos de la máquina"></div>
+          </div>
+
+          <div class="machine-tray">
+            <span class="tray-slot" id="tray-emoji" aria-hidden="true">—</span>
+            <div>
+              <strong id="tray-label">Bandeja de entrega</strong>
+              <small>El producto cae aquí si la compra es válida.</small>
+            </div>
+          </div>
+        </div>
+
+        <aside class="checkout">
+          <div class="checkout-card">
+            <div class="checkout-head">
+              <span class="mini-label">Tu pedido</span>
+              <span class="soft-pill" id="stock-pill">—</span>
+            </div>
+
+            <div class="selected">
+              <span class="selected-emoji" id="sel-emoji" aria-hidden="true">🥟</span>
+              <div>
+                <strong id="sel-nombre">Empanada</strong>
+                <small id="sel-precio">0,002 ETH</small>
+              </div>
+            </div>
+
+            <dl class="mini-stats">
+              <div><dt>Disponibles</dt><dd id="sel-stock">—</dd></div>
+              <div><dt id="saldo-label">Saldo demo</dt><dd id="saldo-demo">0,15 ETH</dd></div>
+            </dl>
+
+            <div class="field">
+              <label for="monto">¿Cuánto vas a pagar?</label>
+              <input id="monto" type="text" inputmode="decimal" autocomplete="off" value="0.002" aria-describedby="pago-preview">
+              <div class="amounts" aria-label="Montos rápidos">
+                <button type="button" data-monto="exacto">Exacto</button>
+                <button type="button" data-extra="0.001">+ 0,001</button>
+                <button type="button" data-monto="0.01">0,01</button>
+              </div>
+              <p class="pay-preview" id="pago-preview" aria-live="polite"></p>
+            </div>
+
+            <button class="btn btn-primary buy" id="btn-comprar" type="button">Comprar por 0,002 ETH</button>
+            <p class="message" id="caja-msg" role="status" aria-live="polite">Elige un producto y ajusta el pago.</p>
+
+            <div class="checkout-foot">
+              <button class="link" id="btn-saldo" type="button">+ 0,05 ETH de prueba</button>
+              <button class="link" id="btn-reiniciar" type="button">Reiniciar demo</button>
+            </div>
+          </div>
+
+          <div class="wallet-line">
+            <span class="dot" id="wallet-dot" aria-hidden="true"></span>
+            <span id="wallet-text">Modo demo · no se firma nada</span>
+            <button class="link" id="btn-conectar" type="button">Conectar MetaMask</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="receipt-card receipt-wide">
+        <div class="checkout-head">
+          <span class="mini-label">Recibo</span>
+          <span class="soft-pill" id="recibo-estado">Sin compras</span>
+        </div>
+        <div id="recibo-body" class="receipt-body">
+          <p class="empty">Tu última compra aparecerá aquí.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dueno">
+      <div class="section-head">
+        <p class="kicker">02 · Modo dueño</p>
+        <h2>Administra la máquina</h2>
+        <p>Sube el stock de cada producto y retira las ganancias. En la red, el contrato solo acepta a la cuenta que lo desplegó.</p>
+      </div>
+
+      <div class="owner-grid">
+        <div class="owner-card">
+          <div class="checkout-head">
+            <span class="mini-label">Inventario</span>
+            <span class="soft-pill" id="owner-role">Dueño · demo</span>
+          </div>
+          <div class="owner-products" id="owner-productos" aria-label="Stock por producto"></div>
+          <p class="owner-note" id="owner-note">
+            En modo demo actúas como dueño. En la red, solo la cuenta que desplegó el contrato puede administrar.
+          </p>
+        </div>
+
+        <div class="owner-card owner-cash">
+          <div class="checkout-head">
+            <span class="mini-label">Ganancias</span>
+            <span class="soft-pill" id="owner-cash-pill">Sin ganancias</span>
+          </div>
+          <p class="cash-label">Saldo del contrato</p>
+          <p class="cash-amount" id="custodia">0 ETH</p>
+
+          <div class="owner-stats">
+            <div><span>Ventas</span><strong id="owner-ventas">0</strong></div>
+            <div><span>Unidades</span><strong id="owner-stock-total">0</strong></div>
+          </div>
+
+          <button class="btn btn-primary full" id="btn-retirar" type="button">Retirar ganancias</button>
+          <p class="owner-note">El retiro envía todo el saldo custodiado a la cuenta dueña.</p>
+          <p class="message" id="owner-msg" role="status" aria-live="polite">Las acciones del dueño aparecerán aquí.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="como-funciona">
+      <div class="section-head">
+        <p class="kicker">03 · La regla</p>
+        <h2>Tres pasos, cero sorpresas</h2>
+        <p>La misma comprobación ocurre en la pantalla y dentro del contrato.</p>
+      </div>
+
+      <div class="steps">
+        <article class="step-card">
+          <span class="step-number">1</span>
+          <h3>Eliges</h3>
+          <p>La máquina muestra el precio y cuántas unidades quedan. El contrato guarda esos datos.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">2</span>
+          <h3>Pagas</h3>
+          <p>El pago viaja con la compra. Si es menor al precio, todo se revierte y no pierdes nada.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">3</span>
+          <h3>Recibes</h3>
+          <p>Si alcanza, baja el stock, se registra la venta y el cambio vuelve a tu saldo.</p>
+        </article>
+      </div>
+
+      <div class="rule-banner">
+        <span aria-hidden="true">💡</span>
+        <p><strong>La regla de oro:</strong> pago suficiente + stock disponible = entrega. Si algo falla, no se descuenta nada.</p>
+      </div>
+    </section>
+
+    <section class="section" id="contrato">
+      <div class="contract-grid">
+        <div class="contract-copy">
+          <p class="kicker">04 · El contrato</p>
+          <h2>La regla vive en el código</h2>
+          <p>
+            Un contrato inteligente es un programa pequeño que se ejecuta igual para todos.
+            Aquí guarda el menú, el stock y los precios, y decide cada compra sin un cajero
+            de por medio.
+          </p>
+          <ul class="check-list">
+            <li>El pago y el cambio se mueven en la misma transacción.</li>
+            <li>Solo la cuenta dueña puede reponer stock o retirar lo recaudado.</li>
+            <li>La entrega física ocurre en la máquina: el contrato no ve la bandeja.</li>
+          </ul>
+          <p class="address-line">
+            Contrato: <code id="contrato-address">Sin desplegar · modo demo</code>
+          </p>
+        </div>
+
+        <div class="code-card">
+          <div class="code-head">
+            <span>DispensadorComida.sol</span>
+            <span>comprar()</span>
+          </div>
+<pre><code><span class="c-key">function</span> <span class="c-fn">comprar</span>(<span class="c-key">uint256</span> id) <span class="c-key">external payable</span>
+    <span class="c-key">returns</span> (<span class="c-key">uint256</span> cambio)
+{
+    Producto <span class="c-key">storage</span> p = _buscar(id);
+
+    <span class="c-key">if</span> (p.stock == 0) <span class="c-key">revert</span> <span class="c-err">SinStock</span>(id);
+    <span class="c-key">if</span> (msg.value &lt; p.precio)
+        <span class="c-key">revert</span> <span class="c-err">PagoInsuficiente</span>(msg.value, p.precio);
+
+    cambio = msg.value - p.precio;
+    p.stock -= 1;
+    ventas += 1;
+
+    <span class="c-key">emit</span> <span class="c-fn">Compra</span>(msg.sender, id, p.nombre,
+        p.precio, cambio, p.stock, ventas);
+
+    <span class="c-key">if</span> (cambio &gt; 0) {
+        (<span class="c-key">bool</span> ok, ) = msg.sender.call{value: cambio}("");
+        <span class="c-key">if</span> (!ok) <span class="c-key">revert</span> <span class="c-err">FalloAlEnviar</span>(msg.sender, cambio);
+    }
+}</code></pre>
+          <p class="code-note">Archivo completo: <code>contracts/DispensadorComida.sol</code></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tests">
+      <div>
+        <p class="kicker">05 · Comprobado</p>
+        <h2>10 pruebas automáticas</h2>
+        <p>Hardhat ejecuta cada regla antes de que la máquina venda de verdad.</p>
+      </div>
+      <div class="test-pills" aria-label="Reglas comprobadas">
+        <span>Pago exacto</span>
+        <span>Cambio correcto</span>
+        <span>Sin stock</span>
+        <span>Pago insuficiente</span>
+        <span>Solo el dueño</span>
+        <span>Retiro de fondos</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span><strong>Bocadito 24/7</strong> · taller de contrato inteligente</span>
+    <span class="footer-links">
+      <a href="https://dp.artnati.org/web/index.html" target="_blank" rel="noreferrer">Aula ADSO ↗</a>
+      <a href="#inicio">Volver arriba</a>
+    </span>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <p class="visually-hidden" id="anuncio" aria-live="polite"></p>
+
+  <noscript><div class="noscript">Activa JavaScript para usar la máquina.</div></noscript>
+</body>
+</html>
